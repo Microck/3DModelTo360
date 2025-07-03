@@ -18,32 +18,10 @@ A Python script designed to automate the processing of 3D models for professiona
 
 ## Features
 
-###  Texture Extraction
-- Automatically extracts textures from 3D models and saves them as JPG files.
-- Organized texture folder structure for easy access.
-
-###  Rendering Modes
-- **Solid View**: Uniform material for clean shape visualization.
-- **Textured View**: Accurate representation of original materials.
-- **Mesh View**: Polygon edges with transparent faces for technical analysis.
-
-###  Animation Pipeline
-- Generates seamless 360° rotation animations for each rendering mode.
-- Transparent backgrounds for easy compositing.
-- Outputs high-quality QuickTime MOV files using ProRes 4444 codec.
-- Outputs high-quality GIF files with alpha transparency.
-
-###  Optimized Output
-- 1024x1024 resolution renders.
-- Professional three-point lighting setup.
-- Dynamic camera positioning based on model size.
-- Organized output structure with consistent naming conventions.
-
-### GIF Specifications
-- **Transparency Support**: GIFs include alpha transparency for compositing.
-- **Optimized Palette**: Uses palette generation for better color quality.
-- **Frame Rate**: Default 30 FPS for smooth animations.
-- **Small File Size**: Reasonable compression while maintaining quality.
+- Texture Extraction: Extracts textures from 3D models as JPG files.
+- Rendering Modes: Generates solid, textured, and mesh views for visualization and analysis.
+- Animation Pipeline: Creates 360° rotation animations with transparent backgrounds in QuickTime MOV and GIF formats.
+- GIF Specifications: Supports alpha transparency, 30 FPS, optimized palette, and small file sizes.
 
 ## Requirements
 
