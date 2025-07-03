@@ -12,14 +12,6 @@
 
 </div>
 
-<p>
-	<img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License">
-	<img src="https://img.shields.io/badge/Blender-4.4+-orange?style=for-the-badge" alt="Blender Version">
-	<img src="https://img.shields.io/badge/Python-3.9+-yellow?style=for-the-badge" alt="Python Version">
-</p>
-
-</div>
-
 ## Overview
 
 A Python script designed to automate the processing of 3D models for professional rendering and animation. Whether you're a 3D artist, game developer, or content creator, this tool simplifies workflows by automating texture extraction, isometric rendering, and 360° rotation animations. It produces high-quality outputs, including QuickTime MOV and GIF files with alpha transparency, ideal for presentations, video editing, and asset visualization.
