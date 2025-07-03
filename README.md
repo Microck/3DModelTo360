@@ -35,7 +35,7 @@ Install the required libraries using the provided `requirements.txt` file:
 pip install -r requirements.txt
 ```
 
-- **Supported Formats**: FBX, GLB, GLTF
+- **Supported Formats**: FBX, GLB, GLTF, BLEND
 
 ## Installation
 
