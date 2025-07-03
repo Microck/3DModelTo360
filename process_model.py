@@ -5,7 +5,7 @@ import math
 import mathutils
 import subprocess
 
-# --- Disable problematic addon ---
+# --- Helper Functions ---
 def disable_addon(addon_name):
     try:
         bpy.ops.preferences.addon_disable(module=addon_name)
@@ -13,46 +13,37 @@ def disable_addon(addon_name):
     except:
         print(f"Could not disable addon: {addon_name}")
 
-# --- Set up soft lighting ---
 def setup_lighting():
-    # Create large area light for soft shadows
     light_data = bpy.data.lights.new(name="KeyLight", type='AREA')
-    light_data.energy = 1000
-    light_data.size = 10.0
+    light_data.energy = 2500
+    light_data.size = 25.0
     light = bpy.data.objects.new(name="KeyLight", object_data=light_data)
     bpy.context.scene.collection.objects.link(light)
-    light.location = (5, -5, 5)
-    light.rotation_euler = (0.785398, 0, 0.785398)
-    
-    # Create fill light
+    light.location = (10, -10, 10)
+    light.rotation_euler = (math.radians(45), 0, math.radians(45))
+
     fill_data = bpy.data.lights.new(name="FillLight", type='AREA')
-    fill_data.energy = 500
-    fill_data.size = 8.0
+    fill_data.energy = 1500
+    fill_data.size = 20.0
     fill = bpy.data.objects.new(name="FillLight", object_data=fill_data)
     bpy.context.scene.collection.objects.link(fill)
-    fill.location = (-5, 5, 3)
-    fill.rotation_euler = (-0.785398, 0, -0.785398)
-    
-    # Create ambient light
+    fill.location = (-10, 10, 7)
+    fill.rotation_euler = (math.radians(-45), 0, math.radians(-45))
+
     world = bpy.context.scene.world
     if not world:
         world = bpy.data.worlds.new("World")
         bpy.context.scene.world = world
     world.use_nodes = True
-    bg = world.node_tree.nodes.get('Background')
-    if not bg:
-        bg = world.node_tree.nodes.new('ShaderNodeBackground')
-    bg.inputs['Strength'].default_value = 0.3
+    bg = world.node_tree.nodes.get('Background') or world.node_tree.nodes.new('ShaderNodeBackground')
+    bg.inputs['Strength'].default_value = 0.8
 
-# --- Create materials ---
 def create_solid_material():
     mat = bpy.data.materials.get("SolidMat")
     if not mat:
         mat = bpy.data.materials.new("SolidMat")
         mat.use_nodes = True
-        bsdf = mat.node_tree.nodes.get('Principled BSDF')
-        if not bsdf:
-            bsdf = mat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
+        bsdf = mat.node_tree.nodes.get('Principled BSDF') or mat.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
         bsdf.inputs['Base Color'].default_value = (0.8, 0.8, 0.8, 1)
         bsdf.inputs['Roughness'].default_value = 0.5
     return mat
@@ -64,14 +55,11 @@ def create_mesh_material():
         mat.use_nodes = True
         nodes = mat.node_tree.nodes
         links = mat.node_tree.links
+        for node in nodes: nodes.remove(node)
         
-        # Clear default nodes
-        for node in nodes:
-            nodes.remove(node)
-        
-        # Create wireframe node
+        # Increase wireframe thickness for better visibility
         wire = nodes.new('ShaderNodeWireframe')
-        wire.inputs['Size'].default_value = 0.0005
+        wire.inputs['Size'].default_value = 0.005  # Increased from 0.002
         
         # Create transparent shader for faces
         transparent = nodes.new('ShaderNodeBsdfTransparent')
@@ -93,16 +81,13 @@ def create_mesh_material():
         links.new(mix.outputs[0], output.inputs[0])
     return mat
 
-# --- Render functions ---
-def render_solid(scene):
-    """Apply solid material to all objects"""
+def render_solid(scene, solid_material):
     for obj in scene.objects:
         if obj.type == 'MESH':
             obj.data.materials.clear()
             obj.data.materials.append(solid_material)
 
 def render_textured(scene, original_materials):
-    """Restore original materials"""
     for obj in scene.objects:
         if obj.type == 'MESH' and obj.name in original_materials:
             obj.data.materials.clear()
@@ -110,105 +95,65 @@ def render_textured(scene, original_materials):
                 if mat_name in bpy.data.materials:
                     obj.data.materials.append(bpy.data.materials[mat_name])
 
-def render_mesh(scene):
-    """Apply mesh material to all objects"""
+def render_mesh(scene, mesh_material):
     for obj in scene.objects:
         if obj.type == 'MESH':
             obj.data.materials.clear()
             obj.data.materials.append(mesh_material)
 
-def render_image(scene, mode, filename, original_materials):
-    if mode == 'SOLID':
-        render_solid(scene)
-    elif mode == 'TEXTURED':
-        render_textured(scene, original_materials)
-    elif mode == 'MESH':
-        render_mesh(scene)
+def render_image(scene, mode, filename, **kwargs):
+    if mode == 'SOLID': render_solid(scene, kwargs['solid_material'])
+    elif mode == 'TEXTURED': render_textured(scene, kwargs['original_materials'])
+    elif mode == 'MESH': render_mesh(scene, kwargs['mesh_material'])
     
     scene.render.filepath = filename
     bpy.ops.render.render(write_still=True)
     print(f"Rendered {filename}")
 
-def render_rotation(scene, empty, mode, prefix, frames=60, original_materials=None):
+def render_rotation(scene, empty, mode, prefix, **kwargs):
     rotation_dir = os.path.join(output_dir, f"{prefix}_rotation")
     os.makedirs(rotation_dir, exist_ok=True)
     
-    # Set initial mode
-    if mode == 'SOLID':
-        render_solid(scene)
-    elif mode == 'TEXTURED':
-        render_textured(scene, original_materials)
-    elif mode == 'MESH':
-        render_mesh(scene)
+    if mode == 'SOLID': render_solid(scene, kwargs['solid_material'])
+    elif mode == 'TEXTURED': render_textured(scene, kwargs['original_materials'])
+    elif mode == 'MESH': render_mesh(scene, kwargs['mesh_material'])
     
-    # Reset rotation
     empty.rotation_euler = (0, 0, 0)
     
-    # Create rotation animation
-    for i in range(frames):
-        # Rotate the model
-        angle = (i / frames) * 2 * math.pi
+    for i in range(kwargs.get('frames', 60)):
+        angle = (i / kwargs.get('frames', 60)) * 2 * math.pi
         empty.rotation_euler = (0, 0, angle)
-        
-        # Render frame
         frame_path = os.path.join(rotation_dir, f"frame_{i:03d}.png")
         scene.render.filepath = frame_path
         bpy.ops.render.render(write_still=True)
     
-    print(f"Rendered {frames} frames for {prefix} rotation in {rotation_dir}")
+    print(f"Rendered {kwargs.get('frames', 60)} frames for {prefix} rotation in {rotation_dir}")
     return rotation_dir
 
-# --- Generate QuickTime MOV animations ---
 def create_mov_animation(frame_dir, output_path, framerate=30):
-    """Convert PNG frames to QuickTime MOV with alpha transparency"""
     input_pattern = os.path.join(frame_dir, "frame_%03d.png")
-    
     try:
         subprocess.run(["ffmpeg", "-version"], capture_output=True, check=True)
-        cmd = [
-            "ffmpeg", "-y",
-            "-framerate", str(framerate),
-            "-i", input_pattern,
-            "-c:v", "prores_ks",
-            "-profile:v", "4444",
-            "-pix_fmt", "yuva444p10le",
-            "-vendor", "apl0",
-            output_path
-        ]
-        subprocess.run(cmd, check=True)
+        cmd = ["ffmpeg", "-y", "-framerate", str(framerate), "-i", input_pattern, "-c:v", "prores_ks", "-profile:v", "4444", "-pix_fmt", "yuva444p10le", "-vendor", "apl0", output_path]
+        subprocess.run(cmd, check=True, capture_output=True)
         print(f"Created QuickTime MOV: {output_path}")
-        return True
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        print("FFmpeg not found. Skipping MOV creation.")
-        return False
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        print(f"FFmpeg failed for MOV. Error: {e}")
 
-# --- Generate GIF animations ---
 def create_gif_animation(frame_dir, output_path, framerate=30):
-    """Convert PNG frames to transparent GIF"""
     input_pattern = os.path.join(frame_dir, "frame_%03d.png")
-    
     try:
         subprocess.run(["ffmpeg", "-version"], capture_output=True, check=True)
-        cmd = [
-            "ffmpeg", "-y",
-            "-framerate", str(framerate),
-            "-i", input_pattern,
-            "-vf", "split [a][b];[a] palettegen [p];[b][p] paletteuse",
-            output_path
-        ]
-        subprocess.run(cmd, check=True)
+        cmd = ["ffmpeg", "-y", "-framerate", str(framerate), "-i", input_pattern, "-vf", "split[a][b];[a]palettegen[p];[b][p]paletteuse", output_path]
+        subprocess.run(cmd, check=True, capture_output=True)
         print(f"Created GIF: {output_path}")
-        return True
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        print("FFmpeg not found. Skipping GIF creation.")
-        return False
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        print(f"FFmpeg failed for GIF. Error: {e}")
 
 # ===== MAIN SCRIPT =====
-# --- Get model path from command line ---
 argv = sys.argv
 argv = argv[argv.index("--") + 1:] if "--" in argv else []
-
-if len(argv) < 1:
+if not argv:
     print('Usage: blender --background --python process_model.py -- <model_path>')
     sys.exit(1)
 
@@ -216,138 +161,134 @@ model_path = argv[0]
 model_name = os.path.splitext(os.path.basename(model_path))[0]
 ext = os.path.splitext(model_path)[1].lower()
 
-# Create output directory
 script_dir = os.path.dirname(os.path.abspath(__file__))
 output_dir = os.path.join(script_dir, "output", model_name)
 os.makedirs(output_dir, exist_ok=True)
 
-# --- Clear existing scene ---
 bpy.ops.wm.read_factory_settings(use_empty=True)
-
-# Disable problematic addon
 disable_addon("io_scene_valvesource")
 
-# --- Import model ---
-if ext == ".fbx":
-    bpy.ops.import_scene.fbx(filepath=model_path)
-elif ext in [".glb", ".gltf"]:
-    bpy.ops.import_scene.gltf(filepath=model_path)
+if ext == ".fbx": bpy.ops.import_scene.fbx(filepath=model_path)
+elif ext in [".glb", ".gltf"]: bpy.ops.import_scene.gltf(filepath=model_path)
+elif ext == ".blend":
+    with bpy.data.libraries.load(model_path, link=False) as (data_from, data_to):
+        data_to.objects = data_from.objects
+    for obj in data_to.objects:
+        if obj: bpy.context.scene.collection.objects.link(obj)
 else:
     print(f"Unsupported file extension: {ext}")
     sys.exit(1)
 
-# --- Backup original materials ---
-original_materials = {}
-for obj in bpy.data.objects:
-    if obj.type == 'MESH':
-        original_materials[obj.name] = [mat.name for mat in obj.data.materials]
+# Ensure all objects are visible
+for obj in bpy.context.scene.objects:
+    obj.hide_set(False)
+    obj.hide_render = False
 
-# --- Extract textures ---
+original_materials = {obj.name: [mat.name for mat in obj.data.materials] for obj in bpy.data.objects if obj.type == 'MESH'}
+
 textures_dir = os.path.join(output_dir, "textures")
 os.makedirs(textures_dir, exist_ok=True)
-
 for mat in bpy.data.materials:
-    if mat.use_nodes:
+    if mat and mat.use_nodes:
         for node in mat.node_tree.nodes:
             if node.type == 'TEX_IMAGE' and node.image:
-                img = node.image
-                img_path = os.path.join(textures_dir, f"{img.name}.jpg")
-                img.filepath_raw = img_path
-                img.file_format = 'JPEG'
                 try:
-                    img.save()
+                    img_path = os.path.join(textures_dir, f"{node.image.name}.jpg")
+                    node.image.filepath_raw = img_path
+                    node.image.file_format = 'JPEG'
+                    node.image.save()
                     print(f"Saved texture: {img_path}")
                 except Exception as e:
-                    print(f"Could not save {img.name}: {e}")
+                    print(f"Could not save texture {node.image.name}: {e}")
 
-# --- Set up lighting ---
 setup_lighting()
 
-# --- Set up camera ---
 scene = bpy.context.scene
 cam_data = bpy.data.cameras.new("Camera")
 cam = bpy.data.objects.new("Camera", cam_data)
 scene.collection.objects.link(cam)
 scene.camera = cam
 
-# Center model
-bpy.ops.object.select_all(action='DESELECT')
-for obj in scene.objects:
-    if obj.type == 'MESH':
-        obj.select_set(True)
-bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
-bpy.ops.object.location_clear()
-bpy.ops.object.select_all(action='DESELECT')
+# Improved camera framing with headroom
+mesh_objects = [obj for obj in scene.objects if obj.type == 'MESH']
+if mesh_objects:
+    # Calculate global bounding box in world space
+    min_coord = [float('inf')] * 3
+    max_coord = [float('-inf')] * 3
+    
+    for obj in mesh_objects:
+        # Get world matrix
+        world_matrix = obj.matrix_world
+        # Get all corners of the object's bounding box in world space
+        for corner in obj.bound_box:
+            world_corner = world_matrix @ mathutils.Vector(corner)
+            for i in range(3):
+                min_coord[i] = min(min_coord[i], world_corner[i])
+                max_coord[i] = max(max_coord[i], world_corner[i])
+    
+    # Add 25% headroom to ensure full visibility
+    headroom = 1.25
+    size = max(max_coord[i] - min_coord[i] for i in range(3)) * headroom
+    center = mathutils.Vector((
+        (min_coord[0] + max_coord[0]) / 2,
+        (min_coord[1] + max_coord[1]) / 2,
+        (min_coord[2] + max_coord[2]) / 2
+    ))
+    
+    # Position camera with extra height for headroom
+    cam.location = center + mathutils.Vector((1.8, -1.8, 1.2)) * size
+    direction = center - cam.location
+    rot_quat = direction.to_track_quat('-Z', 'Y')
+    cam.rotation_euler = rot_quat.to_euler()
+    cam.data.lens = 30  # Wider angle lens to capture more
 
-# Create rotation pivot
-bpy.ops.object.empty_add(type='PLAIN_AXES', location=(0, 0, 0))
+# Create rotation pivot at model center
+bpy.ops.object.empty_add(type='PLAIN_AXES', location=center)
 empty = bpy.context.active_object
 empty.name = "RotationPivot"
+for obj in mesh_objects: 
+    obj.parent = empty
 
-# Parent meshes to empty
-for obj in scene.objects:
-    if obj.type == 'MESH':
-        obj.parent = empty
-
-# Calculate bounding box
-min_co = [float('inf')] * 3
-max_co = [float('-inf')] * 3
-for obj in scene.objects:
-    if obj.type == 'MESH':
-        for v in obj.bound_box:
-            for i in range(3):
-                min_co[i] = min(min_co[i], v[i] + obj.location[i])
-                max_co[i] = max(max_co[i], v[i] + obj.location[i])
-center = [(min_co[i] + max_co[i]) / 2 for i in range(3)]
-size = max(max_co[i] - min_co[i] for i in range(3))
-
-# Place camera
-distance = size * 2.2
-cam.location.x = center[0] + distance * math.cos(math.radians(45))
-cam.location.y = center[1] - distance * math.sin(math.radians(45))
-cam.location.z = center[2] + distance * 0.8
-cam.data.lens = 50
-cam.data.type = 'PERSP'
-
-# Point camera at center
-direction = mathutils.Vector(center) - mathutils.Vector(cam.location)
-rot_quat = direction.to_track_quat('-Z', 'Y')
-cam.rotation_euler = rot_quat.to_euler()
-
-# Set render settings
-scene.render.resolution_x = 1024
-scene.render.resolution_y = 1024
+# Increased resolution to 2048x2048
+scene.render.resolution_x = 2048
+scene.render.resolution_y = 2048
 scene.render.film_transparent = True
 scene.render.image_settings.file_format = 'PNG'
 scene.render.image_settings.color_mode = 'RGBA'
 scene.render.engine = 'BLENDER_EEVEE_NEXT'
 
-# Create materials
+# Create materials with thicker wireframe
 solid_material = create_solid_material()
 mesh_material = create_mesh_material()
+render_kwargs = {
+    'original_materials': original_materials,
+    'solid_material': solid_material,
+    'mesh_material': mesh_material,
+    'frames': 60
+}
 
-# --- Render isometric images ---
-render_image(scene, 'SOLID', os.path.join(output_dir, f'{model_name}_isometric_solid.png'), original_materials)
-render_image(scene, 'TEXTURED', os.path.join(output_dir, f'{model_name}_isometric_textured.png'), original_materials)
-render_image(scene, 'MESH', os.path.join(output_dir, f'{model_name}_isometric_mesh.png'), original_materials)
+# Render isometric views
+render_image(scene, 'SOLID', os.path.join(output_dir, f'{model_name}_isometric_solid.png'), **render_kwargs)
+render_image(scene, 'TEXTURED', os.path.join(output_dir, f'{model_name}_isometric_textured.png'), **render_kwargs)
+render_image(scene, 'MESH', os.path.join(output_dir, f'{model_name}_isometric_mesh.png'), **render_kwargs)
 
-# --- Render 360° rotations ---
-solid_dir = render_rotation(scene, empty, 'SOLID', 'solid', 60, original_materials)
-textured_dir = render_rotation(scene, empty, 'TEXTURED', 'textured', 60, original_materials)
-mesh_dir = render_rotation(scene, empty, 'MESH', 'mesh', 60, original_materials)
+# Render rotation animations
+solid_dir = render_rotation(scene, empty, 'SOLID', 'solid', **render_kwargs)
+textured_dir = render_rotation(scene, empty, 'TEXTURED', 'textured', **render_kwargs)
+mesh_dir = render_rotation(scene, empty, 'MESH', 'mesh', **render_kwargs)
 
-# --- Create animation folders ---
+# Create animation folders
 mov_dir = os.path.join(output_dir, "mov_animations")
 gif_dir = os.path.join(output_dir, "gif_animations")
 os.makedirs(mov_dir, exist_ok=True)
 os.makedirs(gif_dir, exist_ok=True)
 
-# Create QuickTime MOV animations
+# Create MOV animations
 create_mov_animation(solid_dir, os.path.join(mov_dir, f"{model_name}_solid_rotation.mov"))
 create_mov_animation(textured_dir, os.path.join(mov_dir, f"{model_name}_textured_rotation.mov"))
 create_mov_animation(mesh_dir, os.path.join(mov_dir, f"{model_name}_mesh_rotation.mov"))
 
-# Create GIF animations
+# Create GIF animations with higher quality
 create_gif_animation(solid_dir, os.path.join(gif_dir, f"{model_name}_solid_rotation.gif"))
 create_gif_animation(textured_dir, os.path.join(gif_dir, f"{model_name}_textured_rotation.gif"))
 create_gif_animation(mesh_dir, os.path.join(gif_dir, f"{model_name}_mesh_rotation.gif"))
