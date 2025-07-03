@@ -83,31 +83,41 @@ blender --background --python process_model.py -- "path/to/your/model.glb"
 |-----------|-------------|---------|
 | Model path | Path to 3D model file | `"D:\assets\character.glb"` |
 
+Here’s the rewritten **Output Structure** section for clarity and better organization:
+
+
 ### Output Structure
+
+After running the script, the processed files will be organized into the following structure:
+
+```
 output/
 └── model_name/
-├── textures/              # Extracted JPG textures
-├── mov_animations/        # QuickTime MOV files
-│   ├── model_solid_rotation.mov
-│   ├── model_textured_rotation.mov
-│   └── model_mesh_rotation.mov
-├── gif_animations/        # GIF animations
-│   ├── model_solid_rotation.gif
-│   ├── model_textured_rotation.gif
-│   └── model_mesh_rotation.gif
-├── solid_rotation/        # PNG frames (solid mode)
-├── textured_rotation/     # PNG frames (textured mode)
-├── mesh_rotation/         # PNG frames (mesh mode)
-├── model_isometric_solid.png
-├── model_isometric_textured.png
-└── model_isometric_mesh.png
-
-### Workflow
-1. Place your 3D model file in a directory.
-2. Run the script with the model path.
-3. Retrieve processed files in the `output/model_name` directory.
-4. Use MOV files directly in video editors, portfolio sites, or presentations.
-5. Use GIF files for web sharing or lightweight animations.
+    ├── textures/              # Extracted textures from the 3D model (JPG format)
+    ├── mov_animations/        # QuickTime MOV files (ProRes 4444 with alpha transparency)
+    │   ├── model_solid_rotation.mov
+    │   ├── model_textured_rotation.mov
+    │   └── model_mesh_rotation.mov
+    ├── gif_animations/        # GIF animations (with alpha transparency)
+    │   ├── model_solid_rotation.gif
+    │   ├── model_textured_rotation.gif
+    │   └── model_mesh_rotation.gif
+    ├── solid_rotation/        # PNG frames for the solid view rotation
+    │   ├── frame_000.png
+    │   ├── frame_001.png
+    │   └── ...
+    ├── textured_rotation/     # PNG frames for the textured view rotation
+    │   ├── frame_000.png
+    │   ├── frame_001.png
+    │   └── ...
+    ├── mesh_rotation/         # PNG frames for the mesh view rotation
+    │   ├── frame_000.png
+    │   ├── frame_001.png
+    │   └── ...
+    ├── model_isometric_solid.png      # Isometric render (solid view)
+    ├── model_isometric_textured.png   # Isometric render (textured view)
+    └── model_isometric_mesh.png       # Isometric render (mesh view)
+```
 
 ## Example Output
 
@@ -143,13 +153,6 @@ output/
 - Adjustable wireframe thickness.
 - Transparent face rendering.
 - Black edges on light gray background.
-
-## Limitations
-
-- **Complex Materials**: May not fully replicate advanced node-based materials.
-- **Large Models**: Very high-poly models may require extended processing time.
-- **Texture Types**: Only diffuse textures are extracted by default.
-- **Transparency Support**: Requires compatible software for MOV alpha playback.
 
 ## License
 
