@@ -97,9 +97,12 @@ output/
 
 ## Example Output
 
-![Retro_Monitor_0610180922_texture_textured_rotation](https://github.com/user-attachments/assets/1a7e3d22-f5d6-455f-9b9a-1e8700b7845b)
-![Retro_Monitor_0610180922_texture_solid_rotation](https://github.com/user-attachments/assets/5733c280-b30a-472a-af98-5016b3f3f71f)
-![Retro_Monitor_0610180922_texture_mesh_rotation](https://github.com/user-attachments/assets/91a68423-e22a-4eae-ab4d-c96cb73683d1)
+<p align="center">
+    <img src="https://github.com/user-attachments/assets/20580203-c555-44cc-9455-5217ee24516f" alt="Textured Rotation" width="200"/>
+    <img src="https://github.com/user-attachments/assets/d0d5968f-7fa6-44cd-a986-826d94987c8b" alt="Solid Rotation" width="200"/>
+    <img src="https://github.com/user-attachments/assets/d50b47a5-8be5-48d6-8e06-271bb4dd38ca" alt="Mesh Rotation" width="200"/>
+</p>
+
 
 
 ## Technical Details
