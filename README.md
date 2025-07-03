@@ -1,7 +1,7 @@
 <div align="center">
 
 <p>
-	<strong>3D Model to 360°</strong>
+##	<strong>3D Model to 360°</strong>
 </p>
 <p>
 	<strong>Automated pipeline for extracting textures, generating renders, and creating rotation animations from 3D models</strong>
