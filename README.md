@@ -1,11 +1,16 @@
 <div align="center">
 
+# **3D Model to 360°**
+
+### **Automated pipeline for extracting textures, generating renders, and creating rotation animations from 3D models**
+
 <p>
-	<strong>## 3D Model to 360°</strong>
+	<img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License">
+	<img src="https://img.shields.io/badge/Blender-4.4+-orange?style=for-the-badge" alt="Blender Version">
+	<img src="https://img.shields.io/badge/Python-3.9+-yellow?style=for-the-badge" alt="Python Version">
 </p>
-<p>
-	<strong>Automated pipeline for extracting textures, generating renders, and creating rotation animations from 3D models</strong>
-</p>
+
+</div>
 
 <p>
 	<img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License">
