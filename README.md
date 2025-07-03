@@ -88,8 +88,6 @@ Here’s the rewritten **Output Structure** section for clarity and better organ
 
 ### Output Structure
 
-After running the script, the processed files will be organized into the following structure:
-
 ```
 output/
 └── model_name/
