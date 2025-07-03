@@ -97,13 +97,10 @@ output/
 
 ## Example Output
 
-### Isometric Renders
-![Isometric Renders Example](https://via.placeholder.com/1024x300/333333/ffffff?text=Solid+Textured+Mesh+Renders)
-*Professional isometric renders: solid, textured, and mesh views.*
+![Retro_Monitor_0610180922_texture_textured_rotation](https://github.com/user-attachments/assets/1a7e3d22-f5d6-455f-9b9a-1e8700b7845b)
+![Retro_Monitor_0610180922_texture_solid_rotation](https://github.com/user-attachments/assets/5733c280-b30a-472a-af98-5016b3f3f71f)
+![Retro_Monitor_0610180922_texture_mesh_rotation](https://github.com/user-attachments/assets/91a68423-e22a-4eae-ab4d-c96cb73683d1)
 
-### Rotation Animation
-![Rotation Animation Example](https://via.placeholder.com/1024x300/333333/ffffff?text=360°+Rotation+Animation)
-*Transparent rotation animation in QuickTime Player.*
 
 ## Technical Details
 
